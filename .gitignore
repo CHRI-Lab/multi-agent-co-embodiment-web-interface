@@ -1,0 +1,57 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Bytecode cache
+*.pyc
+
+# --- Virtual environments ---
+.venv/
+venv/
+ENV/
+env/
+.venv*/
+pip-wheel-metadata/
+
+# --- FastAPI / Beanie / Mongo ---
+# Local Mongo data directory (if you mount ./tmp/mongo or similar)
+tmp/
+data/
+*.db
+
+# --- Environment variables ---
+.env
+.env.*
+!env.example   # keep a template checked in
+
+# --- Logs ---
+*.log
+*.log.*
+logs/
+*.out
+
+# --- OS files ---
+.DS_Store
+Thumbs.db
+
+# --- Editors ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Docker ---
+# Ignore volumes and local compose overrides
+docker-compose.override.yml
+
+# --- Secrets folder (private keys, ...) ---
+secrets/*

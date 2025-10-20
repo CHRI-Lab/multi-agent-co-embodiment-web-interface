@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Chat (read-only)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    /* --- Icon & message layout --- */
+    .msg-row { display: flex; margin: 10px 0; }
+    .msg-row.left { justify-content: flex-start; }
+    .msg-row.right { justify-content: flex-end; }
+    .msg-row.center { justify-content: center; }
+
+    .msg-bubble {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      max-width: min(75ch, 80%);
+    }
+
+    .msg-bubble.right { flex-direction: row-reverse; }
+
+    /* --- Uniform circular icon --- */
+    .icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: #1a1a1a;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 4px rgba(0,0,0,0.3);
+    }
+
+    /* --- Bubble styling --- */
+    .msg {
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      flex: 1;
+    }
+
+    .msg .meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #9fb0d3;
+      margin-bottom: 4px;
+    }
+    .msg .role { font-weight: 600; }
+    .content { white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="header">
+      <h1>Chat</h1>
+    </header>
+
+    <section id="chat" class="chat" aria-live="polite"></section>
+  </main>
+
+  <script>
+    const chat = document.getElementById("chat");
+
+    function roleLabel(name) {
+      if (name === "Emma") return "Ethic Agent Emma";
+      if (name === "Jane") return "Care Agent Jane";
+      if (name === "Maurice") return "Profit Agent Maurice";
+      return name;
+    }
+
+    function roleIcon(name) {
+      switch (name) {
+        case "Emma": return "/static/icons/emma.png";
+        case "Jane": return "/static/icons/jane.png";
+        case "Maurice": return "/static/icons/maurice.png";
+        case "User": return "/static/icons/user.png";
+        default: return "/static/icons/system.png";
+      }
+    }
+
+    function renderMessage(m) {
+      const row = document.createElement("div");
+      const align =
+        m.role === "assistant" ? "left"
+      : m.role === "user"      ? "right"
+      :                          "center";
+      row.className = `msg-row ${align}`;
+
+      const bubbleWrapper = document.createElement("div");
+      bubbleWrapper.className = `msg-bubble ${align}`;
+
+      // icon
+      const img = document.createElement("img");
+      img.src = roleIcon(m.name || m.role);
+      img.alt = m.name || m.role;
+      img.className = "icon";
+
+      // message bubble
+      const bubble = document.createElement("div");
+      bubble.className = `msg ${m.role}`;
+      const ts = new Date(m.ts * 1000).toLocaleString();
+      bubble.innerHTML = `
+        <div class="meta">
+          <span class="role">${roleLabel(m.name)}</span>
+          <span class="ts">${ts}</span>
+        </div>
+        <div class="content"></div>
+      `;
+      bubble.querySelector(".content").textContent = m.content;
+
+      bubbleWrapper.appendChild(img);
+      bubbleWrapper.appendChild(bubble);
+      row.appendChild(bubbleWrapper);
+      chat.appendChild(row);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    const es = new EventSource("/stream");
+    es.addEventListener("message", (ev) => {
+      try { renderMessage(JSON.parse(ev.data)); } catch (_) {}
+    });
+    es.addEventListener("clear", () => {
+      chat.innerHTML = "";
+    });
+    es.onerror = () => console.warn("SSE error; retrying…");
+  </script>
+</body>
+</html>
